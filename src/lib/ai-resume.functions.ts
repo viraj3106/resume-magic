@@ -100,26 +100,19 @@ export const scoreResume = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
-    const { generateText, Output } = await import("ai");
+    const { generateText } = await import("ai");
     const { createLovableAiGatewayProvider } = await import("./ai-gateway.server");
     const gateway = createLovableAiGatewayProvider(apiKey);
     const model = gateway("google/gemini-3-flash-preview");
-    const { experimental_output } = await generateText({
+    const { text } = await generateText({
       model,
-      experimental_output: Output.object({
-        schema: z.object({
-          overall: z.number().min(0).max(100),
-          keywordMatch: z.number().min(0).max(100),
-          impact: z.number().min(0).max(100),
-          clarity: z.number().min(0).max(100),
-          missingKeywords: z.array(z.string()).max(15),
-          strengths: z.array(z.string()).max(5),
-          improvements: z.array(z.string()).max(5),
-        }),
-      }),
       system:
-        "You are an ATS and resume reviewer. Score critically but constructively.",
-      prompt: `Score this resume against the job description.\n\nRESUME (JSON):\n${data.resumeData}\n\nJOB DESCRIPTION:\n${data.jobDescription}`,
+        "You are an ATS and resume reviewer. Score critically but constructively. Always respond with valid JSON only — no markdown fences, no preamble.",
+      prompt: `Score this resume against the job description and return JSON with this exact shape:\n{\n  "overall": number 0-100,\n  "keywordMatch": number 0-100,\n  "impact": number 0-100,\n  "clarity": number 0-100,\n  "missingKeywords": string[] (max 15),\n  "strengths": string[] (max 5),\n  "improvements": string[] (max 5)\n}\n\nRESUME (JSON):\n${data.resumeData}\n\nJOB DESCRIPTION:\n${data.jobDescription}`,
     });
-    return experimental_output;
+    const cleaned = text.trim().replace(/^```json\s*/i, "").replace(/```$/, "").trim();
+    return JSON.parse(cleaned) as {
+      overall: number; keywordMatch: number; impact: number; clarity: number;
+      missingKeywords: string[]; strengths: string[]; improvements: string[];
+    };
   });
