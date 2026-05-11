@@ -11,6 +11,7 @@ import {
   type TemplateId,
 } from "@/lib/resume-types";
 import { Trash2, Plus, Upload } from "lucide-react";
+import { AiButton } from "./AiButton";
 
 type Props = {
   data: ResumeData;
@@ -169,6 +170,23 @@ export function ResumeEditor({ data, setData, custom, setCustom }: Props) {
           value={data.summary}
           onChange={(e) => update("summary", e.target.value)}
         />
+        <div className="flex justify-end gap-2">
+          <AiButton
+            action="generate-summary"
+            text=" "
+            context={`${data.title} at ${data.experience[0]?.company || ""}. Skills: ${data.skills.join(", ")}`}
+            onResult={(t) => update("summary", t)}
+            label="Generate"
+          />
+          <AiButton
+            action="improve-summary"
+            text={data.summary}
+            context={data.title}
+            onResult={(t) => update("summary", t)}
+            label="Improve"
+            disabled={!data.summary}
+          />
+        </div>
       </section>
 
       {/* Experience */}
@@ -191,9 +209,27 @@ export function ResumeEditor({ data, setData, custom, setCustom }: Props) {
               </div>
             </div>
             <Textarea placeholder="Description" rows={3} value={e.description} onChange={(ev) => { const a=[...data.experience]; a[i]={...e, description: ev.target.value}; update("experience", a); }} />
-            <Button size="sm" variant="ghost" className="text-destructive" onClick={() => update("experience", data.experience.filter(x => x.id !== e.id))}>
-              <Trash2 className="h-4 w-4" /> Remove
-            </Button>
+            <div className="flex items-center justify-between">
+              <Button size="sm" variant="ghost" className="text-destructive" onClick={() => update("experience", data.experience.filter(x => x.id !== e.id))}>
+                <Trash2 className="h-4 w-4" /> Remove
+              </Button>
+              <div className="flex gap-2">
+                <AiButton
+                  action="generate-bullets"
+                  text=" "
+                  context={`${e.role} at ${e.company}`}
+                  onResult={(t) => { const a=[...data.experience]; a[i]={...e, description: t}; update("experience", a); }}
+                  label="Generate bullets"
+                />
+                <AiButton
+                  action="improve-bullets"
+                  text={e.description}
+                  onResult={(t) => { const a=[...data.experience]; a[i]={...e, description: t}; update("experience", a); }}
+                  label="Improve"
+                  disabled={!e.description}
+                />
+              </div>
+            </div>
           </div>
         ))}
       </section>
@@ -234,6 +270,14 @@ export function ResumeEditor({ data, setData, custom, setCustom }: Props) {
           value={data.skills.join(", ")}
           onChange={(e) => update("skills", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
         />
+        <div className="flex justify-end">
+          <AiButton
+            action="extract-skills"
+            text={`${data.title}\n${data.summary}\n${data.experience.map(e => `${e.role}: ${e.description}`).join("\n")}`}
+            onResult={(t) => update("skills", t.split(",").map(s => s.trim()).filter(Boolean))}
+            label="Suggest from resume"
+          />
+        </div>
       </section>
 
       {/* Languages */}
