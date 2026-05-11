@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TipsRouteImport } from './routes/tips'
 import { Route as TemplatesRouteImport } from './routes/templates'
 import { Route as BuilderRouteImport } from './routes/builder'
 import { Route as AiToolsRouteImport } from './routes/ai-tools'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TipsRoute = TipsRouteImport.update({
+  id: '/tips',
+  path: '/tips',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TemplatesRoute = TemplatesRouteImport.update({
   id: '/templates',
   path: '/templates',
@@ -40,12 +46,14 @@ export interface FileRoutesByFullPath {
   '/ai-tools': typeof AiToolsRoute
   '/builder': typeof BuilderRoute
   '/templates': typeof TemplatesRoute
+  '/tips': typeof TipsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai-tools': typeof AiToolsRoute
   '/builder': typeof BuilderRoute
   '/templates': typeof TemplatesRoute
+  '/tips': typeof TipsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,14 @@ export interface FileRoutesById {
   '/ai-tools': typeof AiToolsRoute
   '/builder': typeof BuilderRoute
   '/templates': typeof TemplatesRoute
+  '/tips': typeof TipsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/ai-tools' | '/builder' | '/templates'
+  fullPaths: '/' | '/ai-tools' | '/builder' | '/templates' | '/tips'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/ai-tools' | '/builder' | '/templates'
-  id: '__root__' | '/' | '/ai-tools' | '/builder' | '/templates'
+  to: '/' | '/ai-tools' | '/builder' | '/templates' | '/tips'
+  id: '__root__' | '/' | '/ai-tools' | '/builder' | '/templates' | '/tips'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,10 +76,18 @@ export interface RootRouteChildren {
   AiToolsRoute: typeof AiToolsRoute
   BuilderRoute: typeof BuilderRoute
   TemplatesRoute: typeof TemplatesRoute
+  TipsRoute: typeof TipsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tips': {
+      id: '/tips'
+      path: '/tips'
+      fullPath: '/tips'
+      preLoaderRoute: typeof TipsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/templates': {
       id: '/templates'
       path: '/templates'
@@ -107,6 +124,7 @@ const rootRouteChildren: RootRouteChildren = {
   AiToolsRoute: AiToolsRoute,
   BuilderRoute: BuilderRoute,
   TemplatesRoute: TemplatesRoute,
+  TipsRoute: TipsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
